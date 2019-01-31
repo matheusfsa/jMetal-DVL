@@ -1,0 +1,19 @@
+Picked up _JAVA_OPTIONS:   -Dawt.useSystemAAFontSettings=gasp
+2018-09-12 11:30:13.214 INFORMAÇÕES: Loggers configured with null [org.uma.jmetal.util.JMetalLogger configureLoggers]
+2018-09-12 11:30:13.241 INFORMAÇÕES: rpssize: 293930 [org.uma.jmetal.algorithm.multiobjective.nsgaiii.NSGAIII <init>]
+Exception in thread "Thread-1" java.lang.OutOfMemoryError: Java heap space
+	at java.lang.Integer.valueOf(Integer.java:832)
+	at org.uma.jmetal.util.solutionattribute.impl.DominanceRanking.computeRanking(DominanceRanking.java:90)
+	at org.uma.jmetal.algorithm.multiobjective.nsgaiii.NSGAIII.computeRanking(NSGAIII.java:161)
+	at org.uma.jmetal.algorithm.multiobjective.nsgaiii.NSGAIII.replacement(NSGAIII.java:129)
+	at org.uma.jmetal.algorithm.impl.AbstractEvolutionaryAlgorithm.run(AbstractEvolutionaryAlgorithm.java:63)
+	at java.lang.Thread.run(Thread.java:748)
+Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
+	at java.util.LinkedList.linkLast(LinkedList.java:142)
+	at java.util.LinkedList.add(LinkedList.java:338)
+	at org.uma.jmetal.util.solutionattribute.impl.DominanceRanking.computeRanking(DominanceRanking.java:90)
+	at org.uma.jmetal.util.SolutionListUtils.getNondominatedSolutions(SolutionListUtils.java:21)
+	at org.uma.jmetal.algorithm.multiobjective.nsgaiii.NSGAIII.getNonDominatedSolutions(NSGAIII.java:177)
+	at org.uma.jmetal.algorithm.multiobjective.nsgaiii.NSGAIII.getResult(NSGAIII.java:156)
+	at org.uma.jmetal.algorithm.multiobjective.nsgaiii.NSGAIII.getResult(NSGAIII.java:1)
+	at org.uma.jmetal.runner.multiobjective.NSGAIIIRunner.main(NSGAIIIRunner.java:67)
