@@ -5,7 +5,9 @@ import java.util.List;
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.impl.AbstractEvolutionaryAlgorithm;
 import org.uma.jmetal.algorithm.multiobjective.nsgaiii.user;
+import org.uma.jmetal.algorithm.multiobjective.nsgaiii.util.EnvironmentalSelection;
 import org.uma.jmetal.algorithm.multiobjective.smpso.SMPSO;
+import org.uma.jmetal.operator.impl.selection.RankingAndCrowdingSelection;
 import org.uma.jmetal.problem.DoubleProblem;
 import org.uma.jmetal.problem.multiobjective.dtlz.*;
 import org.uma.jmetal.problem.multiobjective.wfg.*;
@@ -13,16 +15,19 @@ import org.uma.jmetal.runner.multiobjective.NSGAIIIRunner;
 import org.uma.jmetal.solution.DoubleSolution;
 import org.uma.jmetal.solution.impl.DefaultDoubleSolution;
 import org.uma.jmetal.util.AlgorithmRunner;
+import org.uma.jmetal.util.SolutionListUtils;
+import org.uma.jmetal.util.comparator.DominanceComparator;
+import org.uma.jmetal.util.solutionattribute.Ranking;
+import org.uma.jmetal.util.solutionattribute.impl.DominanceRanking;
 
 public class IterativeML {
 	private DoubleProblem problem;
 	private Algorithm<List<DoubleSolution>> algorithm;
 	private ArrayList<Double> upper;
 	private ArrayList<Double> lower;
-	public double hv_pop;
-	public double hv_rand;
-	public double hv_alg;
-	public int iteracoes;
+	private double hv_pop;
+	private int iteracoes;
+	private String estrategia;
 	private  static String urlTreino = "http://127.0.0.1:5003/treinamento";
 	public IterativeML(DoubleProblem problem, Algorithm<List<DoubleSolution>> algorithm) {
 		this.problem = problem;
@@ -45,6 +50,13 @@ public class IterativeML {
 	
 	public void setAlgorithm(Algorithm<List<DoubleSolution>> algorithm) {
 		this.algorithm = algorithm;
+	}
+	public double getHv_pop() {
+		return hv_pop;
+	}
+
+	public int getIteracoes() {
+		return iteracoes;
 	}
 	public void setConstraints() {
 		int n = problem.getNumberOfVariables();
@@ -94,35 +106,27 @@ public class IterativeML {
 		    	}
 		    	objetivos.add(objetivo);
 		    }
-		    user userObject = new user(
-				    nome,
-				    "add_sols",
-				    new ArrayList(),
-				    objetivos,
-				    new ArrayList(),
-				    0,
-				    0,
-				    upper,
-				    lower
-				);
+		    @SuppressWarnings("unchecked")
+			user userObject = new user(nome,"add_sols",new ArrayList(),objetivos, new ArrayList(),0,0,upper,lower);
 		    SMPSO.http(urlTreino, userObject);
 		    	
 		  }
 	public ArrayList<DoubleSolution> geraPopML(int n_pop){
-		return (ArrayList<DoubleSolution>) algorithm.gera_pop("experimento", lower, upper,n_pop);
+		return (ArrayList<DoubleSolution>) algorithm.gera_pop(estrategia, lower, upper,n_pop);
 	}
 	public ArrayList<DoubleSolution> getRandom(){
 		return (ArrayList<DoubleSolution>) algorithm.getInitialPop();
 	}
-	public ArrayList<DoubleSolution> ini_pop_gen(int ini_pop_size, double tol, int max_ite){
+	public ArrayList<DoubleSolution> pop_gen_lhs(int ini_pop_size, double tol, int max_ite){
 		geraPopLHS(ini_pop_size);
 		return fit(ini_pop_size, tol, max_ite);
 	}
-	public ArrayList<DoubleSolution> pop_gen(int ini_pop_size, double tol, int max_ite){
+	public ArrayList<DoubleSolution> pop_gen_alg(int ini_pop_size, double tol, int max_ite){
 		AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
-		ArrayList<DoubleSolution> res = (ArrayList<DoubleSolution>)algorithm.getResult();
-		hv_alg = HyperVolume.hv(problem, res);
 		return fit(ini_pop_size, tol, max_ite);
+	}
+	public void setEstrategia(String estrategia) {
+		this.estrategia = estrategia;
 	}
 	public ArrayList<DoubleSolution> fit(int ini_pop_size, double tol, int max_ite) {
 		double diff = 1.0;
@@ -130,6 +134,7 @@ public class IterativeML {
 		ArrayList<DoubleSolution> pop_res = null;
 		ArrayList<Double> hvs = new ArrayList<>(); 
 		ArrayList<Double> hvs_random = new ArrayList<>(); 
+		ArrayList<DoubleSolution> pop_res_t = new ArrayList<>();
 		double hv_ant = 0;
 		double hv = 0;
 		double max = 0;
@@ -137,10 +142,7 @@ public class IterativeML {
 		pop = geraPopML(ini_pop_size);
 		pop_res = pop;
 		int size = ini_pop_size;
-		for(int i = 0; i < max_ite && Math.abs(diff) > tol; i++) {
-			//System.out.println("a: " + i);
-			//System.out.println(pop.get(0));
-			//System.out.println(getRandom().get(0));
+		for(int i = 0; i < max_ite && diff > tol; i++) {
 			hv = HyperVolume.hv(problem, pop);
 			hvs_random.add(HyperVolume.hv(problem, getRandom()));
 			diff = Math.abs(hv - hv_ant);
@@ -148,19 +150,15 @@ public class IterativeML {
 			if(hv >= 0 && hv  <= 1 && hv > max) {
 				max = hv;
 				pop_res = pop;
-			}
-				
+			}	
 			hv_ant = hv;
-			algorithm.add_pop(pop);
+			//algorithm.add_pop(pop);
 			size += pop.size();
-			pop = geraPopML(size);
 			iteracoes = i+1;
+			if(i<max_ite && diff > tol) {
+				pop = geraPopML(size);
+			}
 		}
-		hv_rand = hvs_random.get(0);
-		System.out.println("alg = " + hvs.toString());
-		//System.out.println("rdm = " + hvs_random.toString());
-		//System.out.println(max);
-		hv_pop = max;
 		return pop_res;
 	}
 	public static void main(String[] args) {
@@ -168,8 +166,9 @@ public class IterativeML {
 		int[] vars = {12};
 		int n_int = 0;
 		double hv = 0;
-		
-		int it = 1; 
+		int ini_pop = 1000;
+		double hv_nsga = 0;
+		int it =  1; 
 		for (int m : objs) {
 			if(m == 3)
 				n_int = 1099;
@@ -177,38 +176,38 @@ public class IterativeML {
 				n_int = 476;
 			else if(m == 10)
 				n_int = 454;
-			DoubleProblem problem = new DTLZ4(12, m);
+			DoubleProblem problem = new DTLZ1(12, m);
 			double media = 0;
 			double media2 = 0;
 			ArrayList<Double> res_alg =  new ArrayList<>();
-			ArrayList<Double> res_rand=  new ArrayList<>();
+			ArrayList<Double> res_con =  new ArrayList<>();
 			
 			for(int i = 0; i < it; i++) {
-				//System.out.println(i);
-				Algorithm<List<DoubleSolution>> algorithm = NSGAIIIRunner.geraNSGA(problem, 61, null);
-				//System.out.println(res);
+				Algorithm<List<DoubleSolution>> algorithm = NSGAIIIRunner.geraNSGA(problem, 353, null);
 				IterativeML iml = new IterativeML(problem, algorithm);
-				List<DoubleSolution> pop = iml.ini_pop_gen(1000, 0.001,50);
+				iml.setEstrategia("experimento2");
+				List<DoubleSolution> pop = iml.pop_gen_lhs(ini_pop, 0.001,50);
+			
 				iml.send_pop("Estimativas",pop);
-				//System.out.println(pop.size());9
-				//System.out.println(pop.get(0));
-				System.out.println(iml.iteracoes);
-				media += iml.hv_pop/it;
-				n_int = (iml.iteracoes*440 + 1000)/440;
-				System.out.println(n_int);
+				media += iml.getHv_pop()/it;
+				//System.out.println("Tamanho da população:" + pop.size());
+				System.out.println("Número de iterações:" + iml.iteracoes);
+				//n_int = (iml.iteracoes*pop.size() + ini_pop)/pop.size();
 				algorithm = NSGAIIIRunner.geraNSGA(problem, n_int, null);
 				AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute() ;
 				ArrayList<DoubleSolution> population = (ArrayList<DoubleSolution>)algorithm.getResult();
+				hv_nsga =  HyperVolume.hv(problem, population);
 				iml.send_pop("NSGAIII",population);
-			    res_alg.add(iml.hv_pop);
-			    res_rand.add(iml.hv_rand);
-			    System.out.println("NSGAIII = " + HyperVolume.hv(problem, population));
+				//res_alg.add(iml.hv_pop);
+			    res_con.add(hv_nsga);
+			    media2 += hv_nsga/it; 
+			    
 			}
-			System.out.println("alg"+ m +" = " + res_alg.toString());
-			System.out.println("rand"+ m + " = " + res_rand.toString());
-			//System.out.println(m + " objetivos");
-			//System.out.println(media);
-			//System.out.println(media2);
+			//System.out.println("alg"+ m +" = " + res_alg.toString());
+			System.out.println("nsgaiii"+ m + " = " + res_con.toString());
+			System.out.println(m + " objetivos");
+			System.out.println(media);
+			System.out.println(media2);
 			
 		}
 		

@@ -161,14 +161,11 @@ List<S> gen_pop = new ArrayList<>();
 		//System.out.println(Arrays.toString(d.evaluate1(new_sol_d)));
 		if(i<maxPopulationSize-1) {
 			gen_pop.add(s);
-		}else {
-			lhs_pop.add(s);
 		}
 		
 	}
 	
 	gen_pop = evaluatePopulation(gen_pop);
-	lhs_pop = evaluatePopulation(lhs_pop);
 	//System.out.println("Antes:" + gen_pop.size());
 	//gen_pop = getNonDominatedSolutions(gen_pop);
 	//System.out.println("Depois:" +gen_pop.size());

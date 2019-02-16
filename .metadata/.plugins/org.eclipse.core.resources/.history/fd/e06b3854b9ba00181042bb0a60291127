@@ -1,0 +1,5 @@
+package org.uma.jmetal.operator;
+
+public interface GeneratorOperator<Source> extends Operator<Source, Source> {
+	  int getNumberOfSolution();
+}

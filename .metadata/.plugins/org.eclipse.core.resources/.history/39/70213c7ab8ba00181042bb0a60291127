@@ -1,0 +1,5 @@
+package org.uma.jmetal.operator.generator;
+
+public class SVRGenerator {
+
+}

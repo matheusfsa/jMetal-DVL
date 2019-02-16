@@ -15,13 +15,13 @@ public class HyperVolume {
 		if (problemName.equals("CDTLZ2"))
 			REFPOINT = 2;
 		else if (problemName.equals("DTLZ1"))
-			//REFPOINT = 1.5;
-			REFPOINT = 600.0;
+			REFPOINT = 1.5;
+			//REFPOINT = 700.0;
 		else if (problemName.equals("DTLZ2"))
 			REFPOINT = 2;
 		else if (problemName.equals("DTLZ3"))
-			//REFPOINT = 11;
-			REFPOINT = 1500.0;
+			REFPOINT = 11;
+			//REFPOINT = 1600.0;
 		else if (problemName.equals("DTLZ4"))
 			REFPOINT = 2;
 		else if (problemName.equals("SDTLZ1"))
