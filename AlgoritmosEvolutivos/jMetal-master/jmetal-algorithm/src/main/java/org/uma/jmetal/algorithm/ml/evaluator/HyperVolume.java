@@ -1,6 +1,5 @@
-package org.uma.jmetal.experiment;
+package org.uma.jmetal.algorithm.ml.evaluator;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import org.uma.jmetal.problem.DoubleProblem;
@@ -9,8 +8,12 @@ import org.uma.jmetal.solution.DoubleSolution;
 import org.uma.jmetal.util.point.Point;
 import org.uma.jmetal.util.point.impl.ArrayPoint;
 
-public class HyperVolume {
-	public static double getRefPoint(String problemName) {
+public class HyperVolume extends Evaluator {
+
+	public HyperVolume(DoubleProblem problem) {
+		super(problem);
+	}
+	private double getRefPoint(String problemName) {
 		double REFPOINT = 0;
 		if (problemName.equals("CDTLZ2"))
 			REFPOINT = 2;
@@ -64,10 +67,12 @@ public class HyperVolume {
 			REFPOINT = 1.6;
 		return REFPOINT;
 	  }
-	public static double hv(DoubleProblem problem, ArrayList<DoubleSolution> pop) {
+
+	@Override
+	public double evaluate(ArrayList<DoubleSolution> pop) {
 		double hyp_ref[] = new double[problem.getNumberOfObjectives()];
 		double normalizacao = 1;
-		double REFPOINT = HyperVolume.getRefPoint(problem.getName());
+		double REFPOINT = getRefPoint(problem.getName());
 		//REFPOINT = 600.0;
 		if (REFPOINT == 1.6) {
 			for (int i = 0; i < problem.getNumberOfObjectives(); i++) {
@@ -95,4 +100,5 @@ public class HyperVolume {
 		
 		return hyp / normalizacao;
 	}
+
 }

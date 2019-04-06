@@ -166,48 +166,65 @@ public class IterativeML {
 		int[] vars = {12};
 		int n_int = 0;
 		double hv = 0;
-		int ini_pop = 1000;
+		int ini_pop = 500;
 		double hv_nsga = 0;
-		int it =  1; 
+		int it =  20; 
+		double hv_pop = 0;
+		int max_it = 0;
 		for (int m : objs) {
-			if(m == 3)
+			if(m == 3) {
 				n_int = 1099;
-			else if(m == 5)
-				n_int = 476;
-			else if(m == 10)
+				max_it = ini_pop/91; 
+			}else if (m == 10) {
 				n_int = 454;
-			DoubleProblem problem = new DTLZ1(12, m);
+				max_it = ini_pop/220;
+			}
+			
+			DoubleProblem problem = new DTLZ2(12, m);
 			double media = 0;
 			double media2 = 0;
 			ArrayList<Double> res_alg =  new ArrayList<>();
 			ArrayList<Double> res_con =  new ArrayList<>();
-			
+			ArrayList<Integer> it_alg =  new ArrayList<>();
+			ArrayList<Integer> it_con =  new ArrayList<>();
 			for(int i = 0; i < it; i++) {
-				Algorithm<List<DoubleSolution>> algorithm = NSGAIIIRunner.geraNSGA(problem, 353, null);
+				Algorithm<List<DoubleSolution>> algorithm = NSGAIIIRunner.geraNSGA(problem,  max_it, null);
 				IterativeML iml = new IterativeML(problem, algorithm);
-				iml.setEstrategia("experimento2");
-				List<DoubleSolution> pop = iml.pop_gen_lhs(ini_pop, 0.001,50);
-			
-				iml.send_pop("Estimativas",pop);
-				media += iml.getHv_pop()/it;
+				iml.setEstrategia("experimento1");
+				ArrayList<DoubleSolution> pop = iml.pop_gen_lhs(ini_pop, 0.001,10);
+				//hv_pop =  HyperVolume.hv(problem, pop);
+				//iml.send_pop("Estimativas",pop);
+				media += hv_pop/it;
+				//res_alg.add(hv_pop);
+				//System.out.println(hv_pop);
 				//System.out.println("Tamanho da população:" + pop.size());
-				System.out.println("Número de iterações:" + iml.iteracoes);
-				//n_int = (iml.iteracoes*pop.size() + ini_pop)/pop.size();
+				//System.out.println("Número de iterações:" + iml.iteracoes);
+				it_alg.add(iml.getIteracoes());
+				n_int = (iml.getIteracoes()*pop.size() + ini_pop)/pop.size();
+				it_con.add(n_int);
+				//System.out.println("Número de iterações do NSGA-III:" + n_int);
+				
 				algorithm = NSGAIIIRunner.geraNSGA(problem, n_int, null);
 				AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute() ;
 				ArrayList<DoubleSolution> population = (ArrayList<DoubleSolution>)algorithm.getResult();
 				hv_nsga =  HyperVolume.hv(problem, population);
+				res_con.add(hv_nsga);
+				System.out.println(hv_nsga);
+				/**
 				iml.send_pop("NSGAIII",population);
 				//res_alg.add(iml.hv_pop);
-			    res_con.add(hv_nsga);
+			    //res_con.add(hv_nsga);
 			    media2 += hv_nsga/it; 
+			    **/
 			    
 			}
-			//System.out.println("alg"+ m +" = " + res_alg.toString());
-			System.out.println("nsgaiii"+ m + " = " + res_con.toString());
-			System.out.println(m + " objetivos");
-			System.out.println(media);
-			System.out.println(media2);
+			//System.out.println("hv_alg"+ m +" = " + res_alg.toString());
+			System.out.println("hv_nsgaiii"+ m + " = " + res_con.toString());
+			//System.out.println("it_alg"+ m +" = " + it_alg.toString());
+			//System.out.println("it_nsgaiii"+ m + " = " + it_con.toString());
+			//System.out.println(m + " objetivos");
+			//System.out.println(media);
+			//System.out.println(media2);
 			
 		}
 		
