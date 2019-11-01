@@ -24,8 +24,8 @@ public class DVLRunner {
 		Evaluator evaluator = new HyperVolume(problem);
 		Algorithm<List<DoubleSolution>> algorithm = NSGAIIIRunner.geraNSGA(problem,  10, null);
 		DataSetGenerator dataSetGenerator = new LHSGenerator(problem, algorithm, 500);
-		PopGenerator popGenerator = new ML(algorithm, "experimento1", dataSetGenerator.getLower(), dataSetGenerator.getUpper());
-		Estimator estimator = new Iterative(500, 92, 0.001,10, evaluator, popGenerator, problem);
+		PopGenerator popGenerator = new ML(algorithm, "experimento2", dataSetGenerator.getLower(), dataSetGenerator.getUpper());
+		Estimator estimator = new Iterative(500, 92, 0.001,1, evaluator, popGenerator, problem);
 		DVL dvl = new DVL(dataSetGenerator, estimator);
 		ArrayList<DoubleSolution> res = dvl.execute();
 		System.out.println(evaluator.evaluate(res));
